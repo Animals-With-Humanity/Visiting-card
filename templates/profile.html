@@ -1,46 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 50px;
-        }
-        .card {
-            max-width: 400px;
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        }
-        .profile-img {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 10px;
-        }
-        .info {
-            font-size: 18px;
-            margin: 5px 0;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>AWH Digital Card - Profile</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .glassmorphism {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+    .glassmorphism:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .button-glass {
+      background: linear-gradient(145deg, rgba(54, 202, 228, 0.7), rgba(246, 244, 15, 0.7));
+      backdrop-filter: blur(4px);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+    .button-glass:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(145deg, rgba(54, 202, 228, 0.8), rgba(246, 244, 15, 0.8));
+    }
+
+    @media print {
+      .no-print {
+        display: none;
+      }
+      .glassmorphism {
+        background: white !important;
+        backdrop-filter: none !important;
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+      }
+    }
+  </style>
 </head>
-<body>
-    <div class="card">
-        {% if user %}
-            <img src="{{ user[4] }}" alt="Profile Picture" class="profile-img">
-            <h2>{{ user[1] }}</h2>
-            <p class="info"><strong>Email:</strong> {{ user[2] }}</p>
-            <p class="info"><strong>Phone:</strong> {{ user[3] }}</p>
-        {% else %}
-            <p>User not found.</p>
-        {% endif %}
+
+<!-- Match submit page styling with the same gradient background -->
+<body class="bg-gradient-to-br from-[#36cae4] to-[#f6f40f] min-h-screen">
+
+{% set user_id = user[0] %}
+{% set user_name = user[1] %}
+{% set user_role = user[2] %}
+{% set user_contact = user[3] %}
+{% set user_whatsapp = user[4] %}
+{% set user_about = user[5] %}
+{% set user_work_email = user[6] %}
+{% set user_personal_email = user[7] %}
+{% set user_linkedin = user[8] %}
+{% set user_instagram = user[9] %}
+{% set profile_image = user[10] %}
+{% set background_image = user[11] %}
+
+<!-- Top "cover" section -->
+<div 
+  class="h-48 w-full bg-cover bg-center"
+  style="background-image: url('{{ background_image }}');">
+</div>
+
+<!-- Centered container, pulling upward to overlap the cover -->
+<div class="max-w-2xl mx-auto -mt-12 relative z-10 p-4">
+  <!-- Glass card -->
+  <div class="glassmorphism p-8 relative">
+
+    <!-- Place the local logo in the top-right corner -->
+    <div class="flex items-start justify-end">
+      <img 
+        src="{{ url_for('static', filename='assets/logonew.png') }}" 
+        alt="AWH Logo" 
+        class="w-24 mb-4 mr-2"
+      >
     </div>
+
+    <!-- Profile image overlapping the top -->
+    {% if profile_image %}
+      <div class="w-full flex justify-center">
+        <img 
+          src="{{ profile_image }}" 
+          alt="Profile Picture" 
+          class="w-32 h-32 object-cover rounded-full border-4 border-white shadow-lg -mt-16"
+        >
+      </div>
+    {% endif %}
+
+    <!-- Name / Role -->
+    <div class="text-center mt-2">
+      <h2 class="text-3xl font-bold text-black">{{ user_name }}</h2>
+      <p class="text-xl mt-1 text-gray-700">{{ user_role }}</p>
+    </div>
+
+    <!-- About -->
+    <p class="italic text-black mt-4">{{ user_about }}</p>
+
+    <!-- Contact Info Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+      <div>
+        <p class="font-bold text-black">Contact:</p>
+        <p class="text-gray-800">{{ user_contact }}</p>
+      </div>
+      <div>
+        <p class="font-bold text-black">WhatsApp:</p>
+        <p class="text-gray-800">{{ user_whatsapp }}</p>
+      </div>
+      <div>
+        <p class="font-bold text-black">Work Email:</p>
+        <p class="text-gray-800">{{ user_work_email }}</p>
+      </div>
+      <div>
+        <p class="font-bold text-black">Personal Email:</p>
+        <p class="text-gray-800">{{ user_personal_email }}</p>
+      </div>
+    </div>
+
+    <!-- Center the LinkedIn / Instagram buttons -->
+    <div class="flex flex-wrap justify-center gap-4 mt-6">
+      {% if user_linkedin %}
+        <a href="{{ user_linkedin }}" target="_blank" class="button-glass text-white px-4 py-2 flex items-center">
+          <i class="bi bi-linkedin mr-2"></i> LinkedIn
+        </a>
+      {% endif %}
+      {% if user_instagram %}
+        <a href="{{ user_instagram }}" target="_blank" class="button-glass text-white px-4 py-2 flex items-center">
+          <i class="bi bi-instagram mr-2"></i> Instagram
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Print Button at bottom -->
+  <div class="text-center mt-8 no-print">
+    <button onclick="window.print()" class="button-glass px-8 py-4 text-xl font-bold text-white">
+      Print Card
+    </button>
+  </div>
+</div>
+
 </body>
 </html>
