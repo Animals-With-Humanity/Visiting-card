@@ -53,7 +53,7 @@ def submit():
         cur = conn.cursor()
         cur.execute("""
             INSERT INTO users
-                (name, position, contact, whatsapp, about,
+                (name, role, contact, whatsapp, about,
                  work_email, personal_email, linkedin, instagram,
                  image_url, background_image)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -82,7 +82,7 @@ def profile(user_id):
     cur = conn.cursor()
     cur.execute("""
         SELECT
-            id, name, position, contact, whatsapp, about,
+            id, name, role, contact, whatsapp, about,
             work_email, personal_email, linkedin, instagram,
             image_url, background_image
         FROM users
