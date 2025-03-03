@@ -36,24 +36,27 @@ def get_db_connection():
     """
     return psycopg2.connect(**DB_PARAMS)
 
-def base64_to_file(base64_str,filename):
+def base64_to_file(base64_str, filename="uploaded_image.png"):
     """Converts a Base64 string to a file-like object"""
-    encoded = base64_str.split(',', 1)[1]  # Remove data:image/png;base64,
+    if not base64_str or ',' not in base64_str:
+        return None  # Handle invalid Base64 input
+    
+    encoded = base64_str.split(',', 1)[1]  # Remove "data:image/png;base64,"
     img_data = base64.b64decode(encoded)
     img_io = io.BytesIO(img_data)
     return FileStorage(stream=img_io, filename=filename, content_type="image/png")
 
 def upload_image(image):
     """
-    Uploads the image to S3 (currently commented out).
-    Returns an image_url. Right now, we just return a placeholder.
+    Uploads the image to S3.
+    Returns the image URL.
     """
     filename = secure_filename(image.filename)
+    try:
+        s3.upload_fileobj(image, S3_BUCKET, filename)
+        image_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{filename}"
+        return image_url
+    except Exception as e:
+        print(f"S3 Upload Failed: {e}")
+        return None  # Handle upload failure
 
-    # If you want to upload to S3 for real, uncomment:
-    s3.upload_fileobj(image, S3_BUCKET, filename)
-    image_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{filename}"
-    return image_url
-    # For now, returning a placeholder image (for testing):
-    placeholder_url = "https://images.pexels.com/photos/1054666/pexels-photo-1054666.jpeg"
-    return placeholder_url
