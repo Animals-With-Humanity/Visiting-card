@@ -157,25 +157,35 @@
 
 <script>
     function compressImage(inputId, hiddenInputId) {
-        document.getElementById(inputId).addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            new Compressor(file, {
-                quality: 0.6,
-                mimeType: 'image/png',
-                success(result) {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(result);
-                    reader.onload = function() {
-                        document.getElementById(hiddenInputId).value = reader.result;
-                    };
-                },
-                error(err) {
-                    console.error('Compression error:', err);
+    document.getElementById(inputId).addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        new Compressor(file, {
+            quality: 0.6, // Adjust compression level
+            mimeType: 'image/png',
+            success(result) {
+                console.log('Original Size:', (file.size / 1024 / 1024).toFixed(2) + ' MB');
+                console.log('Compressed Size:', (result.size / 1024 / 1024).toFixed(2) + ' MB');
+
+                if (result.size > 2 * 1024 * 1024) { // Check if still > 2MB
+                    alert('Even after compression, the image is too large. Please upload a smaller file.');
+                    return;
                 }
-            });
+
+                const reader = new FileReader();
+                reader.readAsDataURL(result);
+                reader.onload = function () {
+                    document.getElementById(hiddenInputId).value = reader.result;
+                };
+            },
+            error(err) {
+                console.error('Compression error:', err);
+            }
         });
-    }
+    });
+}
+
 
     compressImage('profile-input', 'profile-compressed');
     compressImage('background-input', 'background-compressed');
