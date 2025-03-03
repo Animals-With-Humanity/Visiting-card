@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for
-from utils import get_db_connection, upload_image
+from utils import get_db_connection, upload_image,base64_to_file
 
 app = Flask(__name__)
 
@@ -31,9 +31,10 @@ def submit():
         personal_email = request.form['personal_email']
         linkedin = request.form['linkedin']
         instagram = request.form['instagram']
-
+        print(request.files)
         # Handle profile (avatar) image
-        profile_img_file = request.files.get('profile_image')
+        profile_img_base64 = request.form.get('profile_image', '')
+        profile_img_file = base64_to_file(profile_img_base64)
         if profile_img_file and profile_img_file.filename:
             profile_image_url = upload_image(profile_img_file)
         else:
@@ -41,7 +42,8 @@ def submit():
             profile_image_url = ""
 
         # Handle background/cover image
-        background_img_file = request.files.get('background_image')
+        bg_img_base64 = request.form.get('background_image', '')
+        background_img_file = base64_to_file(bg_img_base64)
         if background_img_file and background_img_file.filename:
             background_image_url = upload_image(background_img_file)
         else:
