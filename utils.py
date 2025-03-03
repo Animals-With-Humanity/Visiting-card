@@ -60,3 +60,4 @@ def upload_image(image):
         print(f"S3 Upload Failed: {e}")
         return None  # Handle upload failure
 
+
