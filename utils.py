@@ -36,12 +36,12 @@ def get_db_connection():
     """
     return psycopg2.connect(**DB_PARAMS)
 
-def base64_to_file(base64_str):
+def base64_to_file(base64_str,filename):
     """Converts a Base64 string to a file-like object"""
     encoded = base64_str.split(',', 1)[1]  # Remove data:image/png;base64,
     img_data = base64.b64decode(encoded)
     img_io = io.BytesIO(img_data)
-    return FileStorage(stream=img_io, filename="profile.png", content_type="image/png")
+    return FileStorage(stream=img_io, filename=filename, content_type="image/png")
 
 def upload_image(image):
     """

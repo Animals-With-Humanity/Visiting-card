@@ -34,21 +34,21 @@ def submit():
         print(request.files)
         # Handle profile (avatar) image
         profile_img_base64 = request.form.get('profile_image', '')
-        profile_img_file = base64_to_file(profile_img_base64)
+        profile_img_file = base64_to_file(profile_img_base64,request.files['profile_image_original'].filename)
         if profile_img_file and profile_img_file.filename:
             profile_image_url = upload_image(profile_img_file)
         else:
             # If no file uploaded, store an empty string or a default if you want
-            profile_image_url = ""
+            profile_image_url = "https://github.com/Animals-With-Humanity/Visiting-card/blob/main/static/assets/logonew.png?raw=true"
 
         # Handle background/cover image
         bg_img_base64 = request.form.get('background_image', '')
-        background_img_file = base64_to_file(bg_img_base64)
+        background_img_file = base64_to_file(bg_img_base64,request.files['background_image_original'].filename)
         if background_img_file and background_img_file.filename:
             background_image_url = upload_image(background_img_file)
         else:
             # Use the new placeholder by default
-            background_image_url = "https://images.pexels.com/photos/30861264/pexels-photo-30861264.jpeg"
+            background_image_url = "https://github.com/Animals-With-Humanity/Visiting-card/blob/main/static/assets/logonew.png?raw=true"
 
         # Insert into DB
         conn = get_db_connection()
