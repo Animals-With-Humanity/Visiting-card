@@ -8,7 +8,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
   <!-- Add Compressor.js for image compression -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/compressorjs/1.2.1/compressor.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@latest"></script>
   <style>
     body {
         font-family: 'Space Grotesk', sans-serif;
@@ -156,40 +156,38 @@
 </div>
 
 <script>
-    function compressImage(inputId, hiddenInputId) {
-    document.getElementById(inputId).addEventListener('change', function (e) {
-        const file = e.target.files[0];
+    async function compressImage(file, hiddenInputId) {
         if (!file) return;
+        
+        const options = {
+            maxSizeMB: 0.2, // Target size ~200KB
+            maxWidthOrHeight: 800, // Resize to max 800px width/height
+            useWebWorker: true
+        };
 
-        new Compressor(file, {
-            quality: 0.6, // Adjust compression level
-            mimeType: 'image/png',
-            success(result) {
-                console.log('Original Size:', (file.size / 1024 / 1024).toFixed(2) + ' MB');
-                console.log('Compressed Size:', (result.size / 1024 / 1024).toFixed(2) + ' MB');
+        try {
+            const compressedFile = await imageCompression(file, options);
+            const reader = new FileReader();
 
-                if (result.size > 2 * 1024 * 1024) { // Check if still > 2MB
-                    alert('Even after compression, the image is too large. Please upload a smaller file.');
-                    return;
-                }
+            reader.onload = function (event) {
+                document.getElementById(hiddenInputId).value = event.target.result;
+            };
 
-                const reader = new FileReader();
-                reader.readAsDataURL(result);
-                reader.onload = function () {
-                    document.getElementById(hiddenInputId).value = reader.result;
-                };
-            },
-            error(err) {
-                console.error('Compression error:', err);
-            }
-        });
+            reader.readAsDataURL(compressedFile);
+        } catch (error) {
+            console.error("Image compression error:", error);
+        }
+    }
+
+    document.getElementById("profile-input").addEventListener("change", function () {
+        compressImage(this.files[0], "profile-compressed");
     });
-}
 
-
-    compressImage('profile-input', 'profile-compressed');
-    compressImage('background-input', 'background-compressed');
+    document.getElementById("background-input").addEventListener("change", function () {
+        compressImage(this.files[0], "background-compressed");
+    });
 </script>
+
 
 </body>
 </html>
