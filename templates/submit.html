@@ -158,54 +158,43 @@
 
 <script>
     async function convertHeicToPng(file) {
-        if (file.type === "image/heic" || file.name.endsWith(".heic")) {
+        if (file.type === "image/heic" || file.name.toLowerCase().endsWith(".heic")) {
             try {
                 const blob = await heic2any({
                     blob: file,
                     toType: "image/png",
                 });
+
                 return new File([blob], file.name.replace(/\.heic$/, ".png"), { type: "image/png" });
             } catch (error) {
                 console.error("HEIC conversion error:", error);
                 return null;
             }
         }
-        return file;
+        return file; // Return original if not HEIC
     }
 
     async function compressAndConvertImage(file) {
         if (!file) return null;
 
-        // If HEIC, convert to PNG first
+        // Convert HEIC to PNG first (if applicable)
         file = await convertHeicToPng(file);
+        if (!file) return null;
+
+        // Ensure it's an image before compression
+        if (!file.type.startsWith("image/")) {
+            console.error("Invalid image file type:", file.type);
+            return null;
+        }
 
         // Compression settings
         const options = {
-            maxSizeMB: 3, // Target ~200KB
+            maxSizeMB: 3,
             useWebWorker: true
         };
 
         try {
             const compressedFile = await imageCompression(file, options);
-
-            // Convert to PNG if not already PNG
-            if (compressedFile.type !== "image/png") {
-                const img = new Image();
-                img.src = URL.createObjectURL(compressedFile);
-                await img.decode();
-
-                const canvas = document.createElement("canvas");
-                canvas.width = img.width;
-                canvas.height = img.height;
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(img, 0, 0);
-
-                return new Promise((resolve) => {
-                    canvas.toBlob((blob) => {
-                        resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".png"), { type: "image/png" }));
-                    }, "image/png", 1.0);
-                });
-            }
 
             return compressedFile;
         } catch (error) {
@@ -256,6 +245,7 @@
         uploadImageToS3(this.files[0], "background-url");
     });
 </script>
+
 
 
 
