@@ -26,15 +26,23 @@
       position: relative;
     }
     @media print {
+      * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .collage-background {
+        background-image: url('../static/assets/Images.png') !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        background-size: cover;
+        min-height: 297mm;
+        min-width: 210mm;
+      }
       body {
         width: 210mm;
         height: 297mm;
         size: portrait;
-      }
-      .collage-background {
-        background-size: cover;
-        min-height: 297mm;
-        min-width: 210mm;
       }
       
       #save{
