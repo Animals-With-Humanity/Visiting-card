@@ -35,17 +35,14 @@ def get_db_connection():
     Connects to PostgreSQL using the above DB_PARAMS.
     """
     return psycopg2.connect(**DB_PARAMS)
+def upload_file(file):
+    if file.filename == "":
+            return "No selected file"
 
-def get_url(file_name,file_type):
-    try:
-        presigned_url = s3.generate_presigned_url(
-            "put_object",
-            Params={"Bucket": S3_BUCKET, "Key": S3_ACCESS_KEY, "ContentType": file_type},
-            ExpiresIn=300,  # URL valid for 5 minutes
-        )
-        public_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{S3_ACCESS_KEY}"
-        return presigned_url,public_url
+    filename = secure_filename(file.filename)
+    print(filename)
+    file_key = f"{filename}"  # Organizing files in an 'uploads' folder
     except Exception as e:
-        return ""
+        print("error",e)
 
 
