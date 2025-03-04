@@ -165,19 +165,21 @@
                     toType: "image/png",
                 });
 
-                return new File([blob], file.name.replace(/\.heic$/, ".png"), { type: "image/png" });
+                // Preserve original filename but replace .heic with .png
+                const newFileName = file.name.replace(/\.heic$/i, ".png");
+                return new File([blob], newFileName, { type: "image/png" });
             } catch (error) {
                 console.error("HEIC conversion error:", error);
                 return null;
             }
         }
-        return file; // Return original if not HEIC
+        return file; // Return original file if not HEIC
     }
 
     async function compressAndConvertImage(file) {
         if (!file) return null;
 
-        // Convert HEIC to PNG first (if applicable)
+        // Step 1: Convert HEIC to PNG first (if applicable)
         file = await convertHeicToPng(file);
         if (!file) return null;
 
@@ -187,7 +189,7 @@
             return null;
         }
 
-        // Compression settings
+        // Step 2: Compression settings (max 3MB)
         const options = {
             maxSizeMB: 3,
             useWebWorker: true
@@ -196,55 +198,62 @@
         try {
             const compressedFile = await imageCompression(file, options);
 
-            return compressedFile;
+            // Preserve original filename and type after compression
+            return new File([compressedFile], file.name, { type: compressedFile.type });
         } catch (error) {
             console.error("Image Compression Error:", error);
             return null;
         }
     }
 
-    async function uploadImageToS3(file, hiddenInputId) {
+    async function uploadImageToBackend(file, hiddenInputId) {
         if (!file) return;
 
+        // Hide inputs during upload
+        document.getElementById("profile-input").hidden = true;
+        document.getElementById("background-input").hidden = true;
+        document.getElementById("submit-button").hidden = true;
+
+        // Step 1: Compress and Convert Image
         const compressedFile = await compressAndConvertImage(file);
         if (!compressedFile) return;
 
-        const fileName = `${Date.now()}-${compressedFile.name}`;
-        const fileType = compressedFile.type;
+        // Step 2: Create FormData & Append Correct File with Filename
+        const formData = new FormData();
+        formData.append("file", compressedFile, compressedFile.name); // Preserve filename
 
         try {
-            // Step 1: Get Pre-signed URL
-            const response = await fetch("/get-s3-url", {
+            // Step 3: Upload to Backend
+            const response = await fetch("/upload", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ file_name: fileName, file_type: fileType }),
+                body: formData,
             });
 
             const data = await response.json();
-            if (!data.upload_url) throw new Error("Failed to get S3 URL");
+            if (!data.public_url) throw new Error("Upload failed");
 
-            // Step 2: Upload the image to S3
-            await fetch(data.upload_url, {
-                method: "PUT",
-                headers: { "Content-Type": fileType },
-                body: compressedFile,
-            });
-
-            // Step 3: Store the public URL in the hidden input field
+            // Store uploaded image URL in hidden input
             document.getElementById(hiddenInputId).value = data.public_url;
+
         } catch (error) {
-            console.error("S3 Upload Error:", error);
+            console.error("Upload Error:", error);
+        } finally {
+            // Show inputs again after upload completes
+            document.getElementById("profile-input").hidden = false;
+            document.getElementById("background-input").hidden = false;
+            document.getElementById("submit-button").hidden = false;
         }
     }
 
     document.getElementById("profile-input").addEventListener("change", function () {
-        uploadImageToS3(this.files[0], "profile-url");
+        uploadImageToBackend(this.files[0], "profile-url");
     });
 
     document.getElementById("background-input").addEventListener("change", function () {
-        uploadImageToS3(this.files[0], "background-url");
+        uploadImageToBackend(this.files[0], "background-url");
     });
 </script>
+
 
 
 

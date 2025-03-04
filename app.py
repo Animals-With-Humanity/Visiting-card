@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for,jsonify
-from utils import get_db_connection,get_url
-
+from utils import get_db_connection,upload_file
 app = Flask(__name__)
 
 @app.route('/')
@@ -57,13 +56,16 @@ def submit():
 
     return render_template('submit.html')
 
-@app.route("/get-s3-url", methods=["POST"])
-def get_s3_url():
-    """Generates a pre-signed URL for direct image upload to S3."""
-    file_name = request.json.get("file_name")
-    file_type = request.json.get("file_type")
-    presigned_url,public_url=get_url(file_name,file_type)
-    return jsonify({"upload_url": presigned_url, "public_url": public_url})
+@app.route("/upload", methods=["POST"])
+def upload():
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
+
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+    file_url=upload_file(file)
+    return jsonify({"public_url": file_url})
 
 @app.route('/profile/<int:user_id>')
 def profile(user_id):
