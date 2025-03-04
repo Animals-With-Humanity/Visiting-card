@@ -72,12 +72,12 @@
             <!-- Name / Role -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block mb-2 font-bold">Name</label>
+                    <label class="block mb-2 font-bold">Name<span class="text-xs p-1">(Editable)</span></label>
                     <input type="text" placeholder="Please enter your full name" name="name" required 
                            class="w-full p-3 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 placeholder-gray/70 text-black focus:outline-none focus:border-white">
                 </div>
                 <div>
-                    <label class="block mb-2 font-bold">Role at AwH</label>
+                    <label class="block mb-2 font-bold">Role at AwH<span class="text-xs p-1">(Editable)</span></label>
                     <input type="text" placeholder="plase enter your position in AWH" name="role" required
                            class="w-full p-3 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 placeholder-gray text-black focus:outline-none focus:border-white">
                 </div>
@@ -86,12 +86,12 @@
             <!-- Contact / WhatsApp -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block mb-2 font-bold">Contact Number</label>
+                    <label class="block mb-2 font-bold">Contact Number<span class="text-xs p-1">(Editable)</span></label>
                     <input type="tel" placeholder="Please enter your Contact Number" name="contact" required
                            class="w-full p-3 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 placeholder-gray text-black focus:outline-none focus:border-white">
                 </div>
                 <div>
-                    <label class="block mb-2 font-bold">WhatsApp Number</label>
+                    <label class="block mb-2 font-bold">WhatsApp Number<span class="text-xs p-1">(Editable)</span></label>
                     <input type="tel" placeholder="plase enter your whastapp number" name="whatsapp" required
                            class="w-full p-3 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 placeholder-gray text-black focus:outline-none focus:border-white">
                 </div>
@@ -99,7 +99,7 @@
 
             <!-- About -->
             <div>
-                <label class="block mb-2 font-bold">About</label>
+                <label class="block mb-2 font-bold">About<span class="text-xs p-1">(Editable)</span></label>
                 <textarea name="about" placeholder="Please enter a paragraph of who you are and what work do you do in AWH in 70-80 words"  rows="4" required
                           class="w-full p-3 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 placeholder-gray text-black focus:outline-none focus:border-white"></textarea>
             </div>
@@ -107,12 +107,12 @@
             <!-- Emails -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block mb-2 font-bold">Work Email</label>
+                    <label class="block mb-2 font-bold">Work Email<span class="text-xs p-1">(Editable)</span></label>
                     <input type="email" name="work_email" placeholder="Please enter your work email address"
                            class="w-full p-3 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 placeholder-gray text-black focus:outline-none focus:border-white">
                 </div>
                 <div>
-                    <label class="block mb-2 font-bold">Personal Email</label>
+                    <label class="block mb-2 font-bold">Personal Email<span class="text-xs p-1">(Editable)</span></label>
                     <input type="email" name="personal_email" placeholder="Please enter your personal email address" required
                            class="w-full p-3 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 placeholder-gray text-black focus:outline-none focus:border-white">
                 </div>
@@ -121,12 +121,12 @@
             <!-- LinkedIn / Instagram -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block mb-2 font-bold">LinkedIn URL</label>
+                    <label class="block mb-2 font-bold">LinkedIn URL<span class="text-xs p-1">(Editable)</span></label>
                     <input type="url" name="linkedin" placeholder="please tner a link to your linkedin profile" required
                            class="w-full p-3 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 placeholder-gray text-black focus:outline-none focus:border-white">
                 </div>
                 <div>
-                    <label class="block mb-2 font-bold">Instagram URL</label>
+                    <label class="block mb-2 font-bold">Instagram URL<span class="text-xs p-1">(Editable)</span></label>
                     <input type="url" name="instagram" placeholder="please enter a link to your instagram profile" required
                            class="w-full p-3 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 placeholder-gray text-black focus:outline-none focus:border-white">
                 </div>
@@ -148,7 +148,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="button-glass w-full py-3 text-xl font-bold text-black">
+            <button type="submit" onclick="hideButton()" id="submit-button" class="button-glass w-full py-3 text-xl font-bold text-black">
                 Generate Card
             </button>
         </form>
@@ -156,6 +156,9 @@
 </div>
 
 <script>
+    function hideButton() {
+        document.getElementById("submit-button").style.display = "none";
+    }
     async function compressImage(file, hiddenInputId) {
         if (!file) return;
         
