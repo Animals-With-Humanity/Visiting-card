@@ -153,12 +153,52 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/browser-image-compression@latest"></script>
 <script>
-async function uploadImageToS3(file, hiddenInputId) {
+    async function compressAndConvertImage(file) {
+        if (!file) return null;
+
+        // Compression settings
+        const options = {
+            maxSizeMB: 0.2, // Max ~200KB
+            maxWidthOrHeight: 800, // Resize to max 800px width/height
+            useWebWorker: true
+        };
+
+        try {
+            const compressedFile = await imageCompression(file, options);
+
+            // Convert to PNG
+            const img = new Image();
+            img.src = URL.createObjectURL(compressedFile);
+            await img.decode();
+
+            // Create Canvas for PNG conversion
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0);
+
+            return new Promise((resolve) => {
+                canvas.toBlob((blob) => {
+                    resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".png"), { type: "image/png" }));
+                }, "image/png", 1.0);
+            });
+        } catch (error) {
+            console.error("Image Compression Error:", error);
+            return null;
+        }
+    }
+
+    async function uploadImageToS3(file, hiddenInputId) {
         if (!file) return;
 
-        const fileName = `${Date.now()}-${file.name}`;
-        const fileType = file.type;
+        const compressedFile = await compressAndConvertImage(file);
+        if (!compressedFile) return;
+
+        const fileName = `${Date.now()}-${compressedFile.name}`;
+        const fileType = compressedFile.type;
 
         try {
             // Step 1: Get Pre-signed URL
@@ -175,7 +215,7 @@ async function uploadImageToS3(file, hiddenInputId) {
             await fetch(data.upload_url, {
                 method: "PUT",
                 headers: { "Content-Type": fileType },
-                body: file,
+                body: compressedFile,
             });
 
             // Step 3: Store the public URL in the hidden input field
@@ -193,6 +233,7 @@ async function uploadImageToS3(file, hiddenInputId) {
         uploadImageToS3(this.files[0], "background-url");
     });
 </script>
+
 
 
 </body>
