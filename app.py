@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for
-from utils import get_db_connection, upload_image,base64_to_file
+from flask import Flask, render_template, request, redirect, url_for,jsonify
+from utils import get_db_connection,get_url
 
 app = Flask(__name__)
 
@@ -31,26 +31,8 @@ def submit():
         personal_email = request.form['personal_email']
         linkedin = request.form['linkedin']
         instagram = request.form['instagram']
-        print(request.files)
-        # Handle profile (avatar) image
-        profile_img_base64 = request.form.get('profile_image', '')
-        original_file = request.files.get('profile_image_original')
-        filename = original_file.filename if original_file else "uploaded_image.png"
-        profile_img_file = base64_to_file(profile_img_base64, filename)
-        if profile_img_file:
-            profile_image_url = upload_image(profile_img_file)
-        else:
-            profile_image_url = "https://github.com/Animals-With-Humanity/Visiting-card/blob/main/static/assets/logonew.png?raw=true"
-
-        # Handle background/cover image
-        bg_img_base64 = request.form.get('background_image', '')
-        background_img_file = base64_to_file(bg_img_base64, request.files.get('background_image_original', None).filename)
-        if background_img_file and background_img_file.filename:
-            background_image_url = upload_image(background_img_file)
-        else:
-            # Use the new placeholder by default
-            background_image_url = "https://github.com/Animals-With-Humanity/Visiting-card/blob/main/static/assets/logonew.png?raw=true"
-
+        profile_image_url=request.form["profile_image"]
+        background_image_url=request.form['background_image']
         # Insert into DB
         conn = get_db_connection()
         cur = conn.cursor()
@@ -75,6 +57,13 @@ def submit():
 
     return render_template('submit.html')
 
+@app.route("/get-s3-url", methods=["POST"])
+def get_s3_url():
+    """Generates a pre-signed URL for direct image upload to S3."""
+    file_name = request.json.get("file_name")
+    file_type = request.json.get("file_type")
+    presigned_url,public_url=get_url(file_name,file_type)
+    return jsonify({"upload_url": presigned_url, "public_url": public_url})
 
 @app.route('/profile/<int:user_id>')
 def profile(user_id):
