@@ -136,15 +136,13 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block mb-2 font-bold">Profile Image</label>
-                    <input type="file" id="profile-input" name="profile_image_original" accept="image/*"
-                           class="w-full p-3 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 text-black focus:outline-none focus:border-white">
-                    <input type="hidden" id="profile-compressed" name="profile_image">
+                    <input type="file" id="profile-input" accept="image/*" class="w-full p-3">
+                    <input type="hidden" id="profile-url" name="profile_image">
                 </div>
                 <div>
                     <label class="block mb-2 font-bold">Background Image</label>
-                    <input type="file" id="background-input" name="background_image_original" accept="image/*"
-                           class="w-full p-3 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 text-black focus:outline-none focus:border-white">
-                    <input type="hidden" id="background-compressed" name="background_image">
+                    <input type="file" id="background-input" accept="image/*" class="w-full p-3">
+                    <input type="hidden" id="background-url" name="background_image">
                 </div>
             </div>
 
@@ -156,38 +154,43 @@
 </div>
 
 <script>
-    function hideButton() {
-        document.getElementById("submit-button").style.display = "none";
-    }
-    async function compressImage(file, hiddenInputId) {
+async function uploadImageToS3(file, hiddenInputId) {
         if (!file) return;
-        
-        const options = {
-            maxSizeMB: 0.2, // Target size ~200KB
-            maxWidthOrHeight: 800, // Resize to max 800px width/height
-            useWebWorker: true
-        };
+
+        const fileName = `${Date.now()}-${file.name}`;
+        const fileType = file.type;
 
         try {
-            const compressedFile = await imageCompression(file, options);
-            const reader = new FileReader();
+            // Step 1: Get Pre-signed URL
+            const response = await fetch("/get-s3-url", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ file_name: fileName, file_type: fileType }),
+            });
 
-            reader.onload = function (event) {
-                document.getElementById(hiddenInputId).value = event.target.result;
-            };
+            const data = await response.json();
+            if (!data.upload_url) throw new Error("Failed to get S3 URL");
 
-            reader.readAsDataURL(compressedFile);
+            // Step 2: Upload the image to S3
+            await fetch(data.upload_url, {
+                method: "PUT",
+                headers: { "Content-Type": fileType },
+                body: file,
+            });
+
+            // Step 3: Store the public URL in the hidden input field
+            document.getElementById(hiddenInputId).value = data.public_url;
         } catch (error) {
-            console.error("Image compression error:", error);
+            console.error("S3 Upload Error:", error);
         }
     }
 
     document.getElementById("profile-input").addEventListener("change", function () {
-        compressImage(this.files[0], "profile-compressed");
+        uploadImageToS3(this.files[0], "profile-url");
     });
 
     document.getElementById("background-input").addEventListener("change", function () {
-        compressImage(this.files[0], "background-compressed");
+        uploadImageToS3(this.files[0], "background-url");
     });
 </script>
 

@@ -36,28 +36,17 @@ def get_db_connection():
     """
     return psycopg2.connect(**DB_PARAMS)
 
-def base64_to_file(base64_str, filename="uploaded_image.png"):
-    """Converts a Base64 string to a file-like object"""
-    if not base64_str or ',' not in base64_str:
-        return None  # Handle invalid Base64 input
-    
-    encoded = base64_str.split(',', 1)[1]  # Remove "data:image/png;base64,"
-    img_data = base64.b64decode(encoded)
-    img_io = io.BytesIO(img_data)
-    return FileStorage(stream=img_io, filename=filename, content_type="image/png")
-
-def upload_image(image):
-    """
-    Uploads the image to S3.
-    Returns the image URL.
-    """
-    filename = secure_filename(image.filename)
+def get_url(file_name,file_type):
+    s3_key = f"uploads/{file_name}"
     try:
-        s3.upload_fileobj(image, S3_BUCKET, filename)
-        image_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{filename}"
-        return image_url
+        presigned_url = s3.generate_presigned_url(
+            "put_object",
+            Params={"Bucket": S3_BUCKET, "Key": s3_key, "ContentType": file_type},
+            ExpiresIn=300,  # URL valid for 5 minutes
+        )
+        public_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{s3_key}"
+        return presigned_url,public_url
     except Exception as e:
-        print(f"S3 Upload Failed: {e}")
-        return None  # Handle upload failure
+        return ""
 
 
