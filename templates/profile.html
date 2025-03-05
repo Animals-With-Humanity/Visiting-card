@@ -12,7 +12,9 @@
       padding: 0;
       overflow-x: hidden;
     }
-    
+    .stamp {
+      margin-top: 7vh;
+    }
     .collage-background {
       background-image: url('../static/assets/Images.png');
       background-position: center;
@@ -94,8 +96,8 @@
     <div id="card" class="w-11/12 max-w-md mx-auto bg-cyan-400 rounded-lg shadow-xl overflow-hidden relative">
       
       <!-- Organization stamp in background -->
-      <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-        <div class="w-48 h-48 md:w-60 md:h-60">
+      <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-30 z-0">
+        <div class="stamp" >
           <img src="{{ url_for('static', filename='assets/stamp.png') }}" alt="Organization stamp" class="w-full">
         </div>
       </div>
