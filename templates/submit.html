@@ -226,7 +226,9 @@ function hideProgressBar(containerId) {
             console.error("Invalid image file type:", file.type);
             return null;
         }
-
+        if (file.size > 10){
+            window.alert("WOW! thats a large file, hold on !!")
+        }
         // Step 2: Optimized Compression settings
         const options = {
             maxSizeMB: 1,
@@ -290,6 +292,8 @@ function hideProgressBar(containerId) {
 
             // Store uploaded image URL in hidden input
             document.getElementById(hiddenInputId).value = data.public_url;
+            document.getElementById("profile-input").hidden = false;
+            document.getElementById("background-input").hidden = false;
             showImage(barID,data.public_url);
         } catch (error) {
             console.error("Upload Error:", error);
