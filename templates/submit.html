@@ -142,6 +142,7 @@
                     <div id="progress-bar" class="progress-bar mt-2" style="display: none;">
                         <div class="progress-fill"></div>
                     </div>
+                        <img src="" alt=""/>
                 </div>
                 <div id="background">
                     <label class="block mb-2 font-bold">Background Image</label>
@@ -150,6 +151,8 @@
                     <div class="progress-bar mt-2" style="display: none;">
                         <div class="progress-fill"></div>
                     </div>
+                    <img src="" alt=""/>
+
                 </div>
             </div>
 
@@ -164,6 +167,13 @@
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.3/dist/heic2any.min.js"></script>
 
 <script>
+    function showImage(containerId,link) {
+        const progressBar = document.querySelector(`#${containerId} img`);
+        if (progressBar) {
+        progressBar.style.display = 'block';
+        progressBar.src=link;
+        }
+    }
     function showProgressBar(containerId) {
     const progressBar = document.querySelector(`#${containerId} .progress-bar`);
     if (progressBar) {
@@ -280,11 +290,11 @@ function hideProgressBar(containerId) {
 
             // Store uploaded image URL in hidden input
             document.getElementById(hiddenInputId).value = data.public_url;
+            showImage(barID,data.public_url);
         } catch (error) {
             console.error("Upload Error:", error);
         } finally {
             // Show inputs again after upload completes
-            document.getElementById(hiddenInputId.replace('-url', '-input')).hidden = false;
             document.getElementById("submit-button").hidden = false;
         }
         hideProgressBar(barID);
@@ -295,7 +305,7 @@ function hideProgressBar(containerId) {
     });
 
     document.getElementById("background-input").addEventListener("change", function () {
-        uploadImageToBackend(this.files[0], "background-url");
+        uploadImageToBackend(this.files[0], "background-url","background");
     });
 </script>
 
