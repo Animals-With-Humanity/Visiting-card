@@ -134,15 +134,22 @@
 
             <!-- File uploads: Profile + Background -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+                <div id="profile">
                     <label class="block mb-2 font-bold">Profile Image</label>
+                    <label id="profile-message" class="block mb-2 font-bold hidden">uploading your image please pe patient and do not close this tab.</label>
                     <input type="file" id="profile-input" accept="image/*" class="w-full p-3">
                     <input type="hidden" id="profile-url" name="profile_image">
+                    <div id="progress-bar" class="progress-bar mt-2" style="display: none;">
+                        <div class="progress-fill"></div>
+                    </div>
                 </div>
-                <div>
+                <div id="background">
                     <label class="block mb-2 font-bold">Background Image</label>
                     <input type="file" id="background-input" accept="image/*" class="w-full p-3">
                     <input type="hidden" id="background-url" name="background_image">
+                    <div class="progress-bar mt-2" style="display: none;">
+                        <div class="progress-fill"></div>
+                    </div>
                 </div>
             </div>
 
@@ -157,15 +164,30 @@
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.3/dist/heic2any.min.js"></script>
 
 <script>
-    function hideButton() {
-        document.getElementById("submit-button").hidden=true;
+    function showProgressBar(containerId) {
+    const progressBar = document.querySelector(`#${containerId} .progress-bar`);
+    if (progressBar) {
+        progressBar.style.display = 'block';
     }
-    function showButton() {
-        document.getElementById("submit-button").hidden=false;
+}
+
+function updateProgressBarFill(containerId, percentage) {
+    const progressFill = document.querySelector(`#${containerId} .progress-fill`);
+    if (progressFill) {
+        progressFill.style.width = `${percentage}%`;
     }
+}
+
+function hideProgressBar(containerId) {
+    const progressBar = document.querySelector(`#${containerId} .progress-bar`);
+    if (progressBar) {
+        progressBar.style.display = 'none';
+    }
+}
     async function convertHeicToPng(file) {
         if (file.type === "image/heic" || file.name.toLowerCase().endsWith(".heic")) {
             try {
+                window.alert("You have uploaded an heic file which is an IOS format, these files typically take 30-40 seconds to upload based on your internet connetion.")
                 const blob = await heic2any({
                     blob: file,
                     toType: "image/png",
@@ -195,14 +217,26 @@
             return null;
         }
 
-        // Step 2: Compression settings (max 3MB)
+        // Step 2: Optimized Compression settings
         const options = {
-            maxSizeMB: 3,
-            useWebWorker: true
+            maxSizeMB: 1,
+            useWebWorker: true,
+            maxWidthOrHeight: 1920, // Limit max dimension
+            initialQuality: 0.7, // Slightly reduce quality for faster compression
+            libThreshold: 1, // Faster compression for smaller files
+            outputType: 'file', // Direct file output
+            onProgress: () => {}, // Optional: Empty progress callback
+            onCompletion: () => {} // Optional: Empty completion callback
         };
 
         try {
-            const compressedFile = await imageCompression(file, options);
+            // Use Promise.race to set a timeout for compression
+            const compressedFile = await Promise.race([
+                imageCompression(file, options),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Compression Timeout')), 10000)
+                )
+            ]);
 
             // Preserve original filename and type after compression
             return new File([compressedFile], file.name, { type: compressedFile.type });
@@ -212,22 +246,28 @@
         }
     }
 
-    async function uploadImageToBackend(file, hiddenInputId) {
+    async function uploadImageToBackend(file, hiddenInputId,barID) {
+        showProgressBar(barID);
         if (!file) return;
 
         // Hide inputs during upload
-        document.getElementById("profile-input").hidden = true;
-        document.getElementById("background-input").hidden = true;
+        document.getElementById(hiddenInputId.replace('-url', '-input')).hidden = true;
         document.getElementById("submit-button").hidden = true;
 
         // Step 1: Compress and Convert Image
         const compressedFile = await compressAndConvertImage(file);
-        if (!compressedFile) return;
+        updateProgressBarFill(barID,20)
+        if (!compressedFile) {
+            // Reset everything if compression fails
+            document.getElementById(hiddenInputId.replace('-url', '-input')).hidden = false;
+            document.getElementById("submit-button").hidden = false;
+            return;
+        }
 
         // Step 2: Create FormData & Append Correct File with Filename
         const formData = new FormData();
         formData.append("file", compressedFile, compressedFile.name); // Preserve filename
-
+        updateProgressBarFill(barID,50)
         try {
             // Step 3: Upload to Backend
             const response = await fetch("/upload", {
@@ -240,29 +280,24 @@
 
             // Store uploaded image URL in hidden input
             document.getElementById(hiddenInputId).value = data.public_url;
-
         } catch (error) {
             console.error("Upload Error:", error);
         } finally {
             // Show inputs again after upload completes
-            document.getElementById("profile-input").hidden = false;
-            document.getElementById("background-input").hidden = false;
+            document.getElementById(hiddenInputId.replace('-url', '-input')).hidden = false;
             document.getElementById("submit-button").hidden = false;
         }
+        hideProgressBar(barID);
     }
 
     document.getElementById("profile-input").addEventListener("change", function () {
-        uploadImageToBackend(this.files[0], "profile-url");
+        uploadImageToBackend(this.files[0], "profile-url","profile");
     });
 
     document.getElementById("background-input").addEventListener("change", function () {
         uploadImageToBackend(this.files[0], "background-url");
     });
 </script>
-
-
-
-
 
 </body>
 </html>
