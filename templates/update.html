@@ -6,6 +6,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Add Compressor.js and HEIC conversion libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.3/dist/heic2any.min.js"></script>
   <style>
     body {
       font-family: 'Space Grotesk', sans-serif;
@@ -29,6 +32,18 @@
     .button-glass:hover {
       transform: translateY(-2px);
       background: linear-gradient(145deg, rgba(54, 202, 228, 0.8), rgba(246, 244, 15, 0.8));
+    }
+    .progress-bar {
+      height: 5px;
+      background-color: rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0;
+      background-color: rgba(54, 202, 228, 1);
+      transition: width 0.3s ease;
     }
   </style>
 </head>
@@ -103,7 +118,7 @@
                     <img src="{{ user[10] }}" alt="Profile Image" class="mb-2">
                     <input type="file" id="profile-input" accept="image/*" class="w-full p-3">
                     <input type="hidden" id="profile-url" name="profile_image" value="{{ user[10] }}">
-                    <div id="profile-progress" class="progress-bar mt-2" style="display: none;">
+                    <div class="progress-bar mt-2" style="display: none;">
                         <div class="progress-fill"></div>
                     </div>
                 </div>
@@ -112,7 +127,7 @@
                     <img src="{{ user[11] }}" alt="Background Image" class="mb-2">
                     <input type="file" id="background-input" accept="image/*" class="w-full p-3">
                     <input type="hidden" id="background-url" name="background_image" value="{{ user[11] }}">
-                    <div id="background-progress" class="progress-bar mt-2" style="display: none;">
+                    <div class="progress-bar mt-2" style="display: none;">
                         <div class="progress-fill"></div>
                     </div>
                 </div>
@@ -123,6 +138,94 @@
         </form>
     </div>
 </div>
-<!-- Optional: You can reuse the JavaScript for handling file uploads from submit.html -->
+
+<!-- Image compression and upload handling scripts -->
+<script>
+    function showImage(containerId, link) {
+        const imgEl = document.querySelector(`#${containerId} img`);
+        if (imgEl) {
+            imgEl.style.display = 'block';
+            imgEl.src = link;
+        }
+    }
+    function showProgressBar(containerId) {
+        const bar = document.querySelector(`#${containerId} .progress-bar`);
+        if (bar) bar.style.display = 'block';
+    }
+    function updateProgressBarFill(containerId, percentage) {
+        const fill = document.querySelector(`#${containerId} .progress-fill`);
+        if (fill) fill.style.width = `${percentage}%`;
+    }
+    function hideProgressBar(containerId) {
+        const bar = document.querySelector(`#${containerId} .progress-bar`);
+        if (bar) bar.style.display = 'none';
+    }
+    async function convertHeicToPng(file) {
+        if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
+            try {
+                alert('Uploading an HEIC file can take longer. Click OK to continue.');
+                const blob = await heic2any({ blob: file, toType: 'image/png' });
+                const newName = file.name.replace(/\.heic$/i, '.png');
+                return new File([blob], newName, { type: 'image/png' });
+            } catch (e) {
+                console.error('HEIC conversion error:', e);
+                return null;
+            }
+        }
+        return file;
+    }
+    async function compressAndConvertImage(file) {
+        if (!file || !file.type.startsWith('image/')) return null;
+        file = await convertHeicToPng(file);
+        if (!file) return null;
+        const options = { maxSizeMB: 1, useWebWorker: true, maxWidthOrHeight: 1920, initialQuality: 0.7 };
+        try {
+            const compressed = await Promise.race([
+                imageCompression(file, options),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Compression Timeout')), 10000))
+            ]);
+            return new File([compressed], file.name, { type: compressed.type });
+        } catch (e) {
+            console.error('Image compression error:', e);
+            return null;
+        }
+    }
+    async function uploadImageToBackend(file, hiddenInputId, containerId) {
+        showProgressBar(containerId);
+        if (!file) return;
+        document.getElementById(hiddenInputId.replace('-url','-input')).hidden = true;
+        document.getElementById('update-button').hidden = true;
+        const compressed = await compressAndConvertImage(file);
+        updateProgressBarFill(containerId, 20);
+        if (!compressed) {
+            document.getElementById(hiddenInputId.replace('-url','-input')).hidden = false;
+            document.getElementById('update-button').hidden = false;
+            return;
+        }
+        const formData = new FormData();
+        formData.append('file', compressed, compressed.name);
+        updateProgressBarFill(containerId, 50);
+        try {
+            const res = await fetch('/upload', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (!data.public_url) throw new Error('Upload failed');
+            document.getElementById(hiddenInputId).value = data.public_url;
+            document.getElementById(hiddenInputId.replace('-url','-input')).hidden = false;
+            showImage(containerId, data.public_url);
+        } catch (e) {
+            console.error('Upload error:', e);
+        } finally {
+            document.getElementById('update-button').hidden = false;
+        }
+        hideProgressBar(containerId);
+    }
+    document.getElementById('profile-input').addEventListener('change', function() {
+        uploadImageToBackend(this.files[0], 'profile-url', 'profile');
+    });
+    document.getElementById('background-input').addEventListener('change', function() {
+        uploadImageToBackend(this.files[0], 'background-url', 'background');
+    });
+</script>
+
 </body>
 </html>
