@@ -10,20 +10,14 @@ from werkzeug.datastructures import FileStorage
 load_dotenv()
 
 # PostgreSQL Configuration
-# DB_PARAMS = {
-#     'dbname': os.getenv('dbname'),   # Make sure this matches your DB name
-#     'user': os.getenv('user'),        # Your Postgres username
-#     'password': os.getenv('password'), # Your Postgres password
-#     'host': os.getenv('host'),
-#     'port': os.getenv('port')
-# }
 DB_PARAMS = {
-    'dbname': 'flask_app',   # Make sure this matches your DB name
-    'user': 'postgres',        # Your Postgres username
-    'password': 'password', # Your Postgres password
-    'host': 'localhost',
-    'port': '5432'
-}
+     'dbname': os.getenv('dbname'),   # Make sure this matches your DB name
+     'user': os.getenv('user'),        # Your Postgres username
+     'password': os.getenv('password'), # Your Postgres password
+     'host': os.getenv('host'),
+     'port': os.getenv('port')
+ }
+
 
 
 # AWS S3 Configuration (optional - only if you want real S3 image uploads)
