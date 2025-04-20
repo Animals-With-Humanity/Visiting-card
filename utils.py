@@ -45,9 +45,9 @@ def upload_file(file):
     file_key = f"{filename}"  # Organizing files in an 'uploads' folder
 
     try:
-        # s3.upload_fileobj(file, S3_BUCKET, file_key)
-        # file_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{file_key}"
-        file_url = "https://images.pexels.com/photos/1054666/pexels-photo-1054666.jpeg"
+         s3.upload_fileobj(file, S3_BUCKET, file_key)
+         file_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{file_key}"
+        #file_url = "https://images.pexels.com/photos/1054666/pexels-photo-1054666.jpeg"
         return file_url
     except Exception as e:
         print("error",e)
