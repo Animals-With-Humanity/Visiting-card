@@ -10,13 +10,21 @@ from werkzeug.datastructures import FileStorage
 load_dotenv()
 
 # PostgreSQL Configuration
+# DB_PARAMS = {
+#     'dbname': os.getenv('dbname'),   # Make sure this matches your DB name
+#     'user': os.getenv('user'),        # Your Postgres username
+#     'password': os.getenv('password'), # Your Postgres password
+#     'host': os.getenv('host'),
+#     'port': os.getenv('port')
+# }
 DB_PARAMS = {
-    'dbname': os.getenv('dbname'),   # Make sure this matches your DB name
-    'user': os.getenv('user'),        # Your Postgres username
-    'password': os.getenv('password'), # Your Postgres password
-    'host': os.getenv('host'),
-    'port': os.getenv('port')
+    'dbname': 'flask_app',   # Make sure this matches your DB name
+    'user': 'postgres',        # Your Postgres username
+    'password': 'password', # Your Postgres password
+    'host': 'localhost',
+    'port': '5432'
 }
+
 
 # AWS S3 Configuration (optional - only if you want real S3 image uploads)
 S3_BUCKET = os.getenv("S3_BUCKET", "default")
@@ -43,8 +51,9 @@ def upload_file(file):
     file_key = f"{filename}"  # Organizing files in an 'uploads' folder
 
     try:
-        s3.upload_fileobj(file, S3_BUCKET, file_key)
-        file_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{file_key}"
+        # s3.upload_fileobj(file, S3_BUCKET, file_key)
+        # file_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{file_key}"
+        file_url = "https://images.pexels.com/photos/1054666/pexels-photo-1054666.jpeg"
         return file_url
     except Exception as e:
         print("error",e)

@@ -172,5 +172,34 @@
       </div>
     </div>
   </div>
+
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <!-- Overlay -->
+    <div id="flash-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+      <!-- Modal box -->
+      <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-11/12 p-6 text-center">
+        {% for msg in messages %}
+          <p class="text-gray-900 text-lg mb-6">{{ msg }}</p>
+        {% endfor %}
+        <button
+          id="flash-close"
+          class="bg-[#36cae4] hover:bg-[#2bb2c2] text-white font-semibold py-2 px-6 rounded-full transition"
+        >
+          OK
+        </button>
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById('flash-close')
+        .addEventListener('click', () => {
+          document.getElementById('flash-modal').remove();
+        });
+    </script>
+  {% endif %}
+{% endwith %}
+
 </body>
 </html>

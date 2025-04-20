@@ -122,12 +122,12 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block mb-2 font-bold">LinkedIn URL<span class="text-xs p-1">(Editable)</span></label>
-                    <input type="url" name="linkedin" placeholder="please tner a link to your linkedin profile" required
+                    <input type="url" name="linkedin" placeholder="Please enter a link to your linkedin profile" 
                            class="w-full p-3 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 placeholder-gray text-black focus:outline-none focus:border-white">
                 </div>
                 <div>
                     <label class="block mb-2 font-bold">Instagram URL<span class="text-xs p-1">(Editable)</span></label>
-                    <input type="url" name="instagram" placeholder="please enter a link to your instagram profile" required
+                    <input type="url" name="instagram" placeholder="Please enter a link to your instagram profile" 
                            class="w-full p-3 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 placeholder-gray text-black focus:outline-none focus:border-white">
                 </div>
             </div>
@@ -197,7 +197,7 @@ function hideProgressBar(containerId) {
     async function convertHeicToPng(file) {
         if (file.type === "image/heic" || file.name.toLowerCase().endsWith(".heic")) {
             try {
-                window.alert("You have uploaded an heic file which is an IOS format, these files typically take 30-40 seconds to upload based on your internet connetion.")
+                window.alert("You have uploaded an heic file which is an IOS format, these files typically take 30-40 seconds to upload based on your internet connetion. Click OK to continue.")
                 const blob = await heic2any({
                     blob: file,
                     toType: "image/png",
@@ -226,9 +226,7 @@ function hideProgressBar(containerId) {
             console.error("Invalid image file type:", file.type);
             return null;
         }
-        if (file.size > 10){
-            window.alert("WOW! thats a large file, hold on !!")
-        }
+       
         // Step 2: Optimized Compression settings
         const options = {
             maxSizeMB: 1,
@@ -312,6 +310,34 @@ function hideProgressBar(containerId) {
         uploadImageToBackend(this.files[0], "background-url","background");
     });
 </script>
+
+{# Flash‑message modal #}
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div id="flash-modal"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div class="glassmorphism p-6 max-w-sm w-full text-center">
+        {% for msg in messages %}
+          <p class="text-black text-lg mb-4">{{ msg }}</p>
+        {% endfor %}
+        <button id="flash-close"
+                class="button-glass px-6 py-2 rounded-xl text-white font-semibold">
+          OK
+        </button>
+      </div>
+    </div>
+    <script>
+      document
+        .getElementById('flash-close')
+        .addEventListener('click', () => {
+          document.getElementById('flash-modal').remove();
+        });
+    </script>
+  {% endif %}
+{% endwith %}
+
+  
+
 
 </body>
 </html>
